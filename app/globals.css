@@ -1,0 +1,126 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  /* Updated color tokens for health/wellness nutrition tracker theme */
+  --background: #f0fdf4; /* Light green background for a fresh feel */
+  --foreground: #374151; /* Dark grey for text and icons */
+  --card: #ffffff; /* White for card backgrounds */
+  --card-foreground: #374151; /* Dark grey for text inside cards */
+  --popover: #ffffff; /* White for popover backgrounds */
+  --popover-foreground: #374151; /* Dark grey for popover text */
+  --primary: #15803d; /* Green for primary actions like buttons */
+  --primary-foreground: #ffffff; /* White text on primary buttons */
+  --secondary: #84cc16; /* Bright green for highlights and accents */
+  --secondary-foreground: #374151; /* Dark grey for secondary text */
+  --muted: #f0fdf4; /* Light green for muted elements */
+  --muted-foreground: #374151; /* Dark grey for muted text */
+  --accent: #84cc16; /* Bright green for important highlights */
+  --accent-foreground: #ffffff; /* White for accent text */
+  --destructive: #dc2626; /* Red for error states */
+  --destructive-foreground: #ffffff; /* White for destructive actions */
+  --border: #e5e7eb; /* Light grey for borders */
+  --input: #ffffff; /* White for input fields */
+  --ring: #84cc16; /* Bright green for focus rings */
+  --chart-1: #15803d; /* Green for chart data */
+  --chart-2: #f97316; /* Orange for secondary chart data */
+  --chart-3: #dc2626; /* Red for alert data */
+  --chart-4: #4b5563; /* Dark grey for neutral data */
+  --chart-5: #84cc16; /* Bright green for positive data */
+  --radius: 0.5rem; /* Rounded corners for a softer look */
+  --sidebar: #ffffff; /* White for sidebar background */
+  --sidebar-foreground: #374151; /* Dark grey for sidebar text */
+  --sidebar-primary: #15803d; /* Green for primary sidebar actions */
+  --sidebar-primary-foreground: #ffffff; /* White for sidebar action text */
+  --sidebar-accent: #84cc16; /* Bright green for sidebar highlights */
+  --sidebar-accent-foreground: #374151; /* Dark grey for sidebar accent text */
+  --sidebar-border: #e5e7eb; /* Light grey for sidebar borders */
+  --sidebar-ring: #84cc16; /* Bright green for sidebar focus rings */
+}
+
+.dark {
+  /* Updated dark mode tokens to complement the health theme */
+  --background: #0f172a; /* Dark slate background */
+  --foreground: #f8fafc; /* Light text */
+  --card: #1e293b; /* Dark card background */
+  --card-foreground: #f8fafc; /* Light text on cards */
+  --popover: #1e293b; /* Dark popover background */
+  --popover-foreground: #f8fafc; /* Light popover text */
+  --primary: #22c55e; /* Brighter green for dark mode */
+  --primary-foreground: #0f172a; /* Dark text on primary buttons */
+  --secondary: #84cc16; /* Bright green accent */
+  --secondary-foreground: #0f172a; /* Dark text on secondary */
+  --muted: #334155; /* Muted dark background */
+  --muted-foreground: #94a3b8; /* Muted light text */
+  --accent: #84cc16; /* Bright green accent */
+  --accent-foreground: #0f172a; /* Dark text on accent */
+  --destructive: #ef4444; /* Bright red for errors */
+  --destructive-foreground: #f8fafc; /* Light text on destructive */
+  --border: #334155; /* Dark border */
+  --input: #1e293b; /* Dark input background */
+  --ring: #22c55e; /* Green focus ring */
+  --chart-1: #22c55e; /* Green chart data */
+  --chart-2: #f97316; /* Orange chart data */
+  --chart-3: #ef4444; /* Red chart data */
+  --chart-4: #64748b; /* Grey chart data */
+  --chart-5: #84cc16; /* Bright green chart data */
+  --sidebar: #1e293b; /* Dark sidebar */
+  --sidebar-foreground: #f8fafc; /* Light sidebar text */
+  --sidebar-primary: #22c55e; /* Green sidebar primary */
+  --sidebar-primary-foreground: #0f172a; /* Dark sidebar primary text */
+  --sidebar-accent: #84cc16; /* Bright green sidebar accent */
+  --sidebar-accent-foreground: #0f172a; /* Dark sidebar accent text */
+  --sidebar-border: #334155; /* Dark sidebar border */
+  --sidebar-ring: #22c55e; /* Green sidebar focus ring */
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  /* Fixed radius calculations to use consistent rem units */
+  --radius-sm: 0.25rem;
+  --radius-md: 0.375rem;
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.75rem;
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
