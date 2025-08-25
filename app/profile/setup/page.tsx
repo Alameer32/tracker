@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { createClient } from "@/lib/supabase/client"
 import { STATIC_USER_ID } from "@/lib/constants"
 
 interface ProfileData {
@@ -86,7 +87,7 @@ export default function ProfileSetupPage() {
       const nutritionGoals = calculateNutritionGoals(formData)
 
       const profileData = {
-        id: STATIC_USER_ID, // Use static UUID instead of "user-1"
+        id: STATIC_USER_ID,
         name: formData.name,
         age: Number.parseInt(formData.age),
         gender: formData.gender,
@@ -97,7 +98,17 @@ export default function ProfileSetupPage() {
         ...nutritionGoals,
       }
 
-      // Store profile in localStorage for now (in production, you'd still use Supabase but without auth)
+      // Save to Supabase database
+      const supabase = createClient()
+      const { error } = await supabase
+        .from('user_profiles')
+        .upsert(profileData)
+
+      if (error) {
+        throw new Error('Failed to save profile to database')
+      }
+
+      // Also save to localStorage as backup
       localStorage.setItem("userProfile", JSON.stringify(profileData))
 
       router.push("/dashboard")

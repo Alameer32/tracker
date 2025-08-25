@@ -13,12 +13,11 @@ interface BarcodeScannerProps {
 }
 
 export function BarcodeScanner({ isOpen, onClose, onBarcodeDetected }: BarcodeScannerProps) {
-  const videoRef = useRef<HTMLVideoElement>(null)
-  const canvasRef = useRef<HTMLCanvasElement>(null)
   const [isScanning, setIsScanning] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [stream, setStream] = useState<MediaStream | null>(null)
-  const scanIntervalRef = useRef<NodeJS.Timeout | null>(null)
+  const videoRef = useRef<HTMLVideoElement>(null)
+  const canvasRef = useRef<HTMLCanvasElement>(null)
 
   // Initialize camera when dialog opens
   useEffect(() => {
@@ -55,13 +54,9 @@ export function BarcodeScanner({ isOpen, onClose, onBarcodeDetected }: BarcodeSc
 
       if (videoRef.current) {
         videoRef.current.srcObject = mediaStream
-        videoRef.current.play()
-
-        // Start scanning for barcodes
-        videoRef.current.onloadedmetadata = () => {
-          startBarcodeDetection()
-        }
+        await videoRef.current.play()
       }
+
     } catch (err) {
       console.error("Error accessing camera:", err)
       setError(err instanceof Error ? err.message : "Failed to access camera")
@@ -74,70 +69,17 @@ export function BarcodeScanner({ isOpen, onClose, onBarcodeDetected }: BarcodeSc
       stream.getTracks().forEach((track) => track.stop())
       setStream(null)
     }
-    if (scanIntervalRef.current) {
-      clearInterval(scanIntervalRef.current)
-      scanIntervalRef.current = null
-    }
     setIsScanning(false)
-  }
-
-  const startBarcodeDetection = () => {
-    if (!videoRef.current || !canvasRef.current) return
-
-    const video = videoRef.current
-    const canvas = canvasRef.current
-    const context = canvas.getContext("2d")
-
-    if (!context) return
-
-    // Set canvas size to match video
-    canvas.width = video.videoWidth
-    canvas.height = video.videoHeight
-
-    // Check for BarcodeDetector support
-    if ("BarcodeDetector" in window) {
-      const barcodeDetector = new (window as any).BarcodeDetector({
-        formats: ["ean_13", "ean_8", "upc_a", "upc_e", "code_128", "code_39"],
-      })
-
-      scanIntervalRef.current = setInterval(async () => {
-        if (video.readyState === video.HAVE_ENOUGH_DATA) {
-          context.drawImage(video, 0, 0, canvas.width, canvas.height)
-
-          try {
-            const barcodes = await barcodeDetector.detect(canvas)
-            if (barcodes.length > 0) {
-              const barcode = barcodes[0].rawValue
-              console.log("[v0] Barcode detected:", barcode)
-              onBarcodeDetected(barcode)
-              stopCamera()
-              onClose()
-            }
-          } catch (err) {
-            console.error("Barcode detection error:", err)
-          }
-        }
-      }, 100) // Check every 100ms
-    } else {
-      // Fallback: Manual barcode detection using a simple pattern matching
-      // This is a basic implementation - in production you'd use a proper barcode library
-      scanIntervalRef.current = setInterval(() => {
-        if (video.readyState === video.HAVE_ENOUGH_DATA) {
-          context.drawImage(video, 0, 0, canvas.width, canvas.height)
-          // For demo purposes, we'll simulate barcode detection after 3 seconds
-          // In a real app, you'd integrate with a barcode detection library like QuaggaJS
-        }
-      }, 100)
-
-      // Show fallback message after 3 seconds
-      setTimeout(() => {
-        setError("Barcode detection not supported. Please enter barcode manually or use a supported browser.")
-      }, 3000)
-    }
   }
 
   const handleClose = () => {
     stopCamera()
+    onClose()
+  }
+
+  const handleManualBarcode = () => {
+    // For now, just close the scanner and let user enter manually
+    // In a real implementation, you'd integrate with a barcode detection library
     onClose()
   }
 
@@ -157,9 +99,14 @@ export function BarcodeScanner({ isOpen, onClose, onBarcodeDetected }: BarcodeSc
             <Card className="border-destructive/50">
               <CardContent className="p-4">
                 <div className="text-sm text-destructive">{error}</div>
-                <Button variant="outline" onClick={startCamera} className="mt-3 w-full bg-transparent">
-                  Try Again
-                </Button>
+                <div className="mt-3 space-y-2">
+                  <Button variant="outline" onClick={startCamera} className="w-full bg-transparent">
+                    Try Again
+                  </Button>
+                  <Button variant="outline" onClick={handleManualBarcode} className="w-full bg-transparent">
+                    Enter Barcode Manually
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           ) : (
@@ -174,17 +121,17 @@ export function BarcodeScanner({ isOpen, onClose, onBarcodeDetected }: BarcodeSc
                 />
 
                 {/* Scanning overlay */}
-                <div className="absolute inset-0 flex items-center justify-center">
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                   <div className="border-2 border-primary border-dashed rounded-lg w-64 h-32 flex items-center justify-center">
                     <div className="text-white text-sm font-medium bg-black/50 px-2 py-1 rounded">
-                      {isScanning ? "Scanning..." : "Position barcode here"}
+                      {isScanning ? "Camera Active" : "Position barcode here"}
                     </div>
                   </div>
                 </div>
 
                 {/* Scanning animation */}
                 {isScanning && (
-                  <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                     <div className="w-64 h-32 relative overflow-hidden rounded-lg">
                       <div className="absolute top-0 left-0 right-0 h-0.5 bg-primary animate-pulse" />
                       <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary animate-pulse" />
@@ -202,10 +149,15 @@ export function BarcodeScanner({ isOpen, onClose, onBarcodeDetected }: BarcodeSc
             <span>Make sure the barcode is well-lit and clearly visible</span>
           </div>
 
-          <Button variant="outline" onClick={handleClose} className="w-full bg-transparent">
-            <X className="h-4 w-4 mr-2" />
-            Cancel
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={handleManualBarcode} className="flex-1">
+              Enter Manually
+            </Button>
+            <Button variant="outline" onClick={handleClose} className="flex-1">
+              <X className="h-4 w-4 mr-2" />
+              Cancel
+            </Button>
+          </div>
         </div>
       </DialogContent>
     </Dialog>

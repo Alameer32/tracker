@@ -2,12 +2,14 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Home, Apple, Activity, BarChart3, Settings, Menu, X } from "lucide-react"
 import { InstallPrompt } from "@/components/install-prompt"
+import { createClient } from "@/lib/supabase/client"
+import { STATIC_USER_ID } from "@/lib/constants"
 
 interface DashboardLayoutProps {
   children: React.ReactNode
@@ -15,18 +17,39 @@ interface DashboardLayoutProps {
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [profile, setProfile] = useState({ name: "User" })
 
-  const profile =
-    typeof window !== "undefined"
-      ? JSON.parse(localStorage.getItem("userProfile") || '{"name": "User"}')
-      : { name: "User" }
+  useEffect(() => {
+    loadProfile()
+  }, [])
+
+  const loadProfile = async () => {
+    try {
+      const supabase = createClient()
+      const { data, error } = await supabase
+        .from('user_profiles')
+        .select('*')
+        .eq('id', STATIC_USER_ID)
+        .single()
+
+      if (error) throw error
+      setProfile(data)
+    } catch (error) {
+      console.error('Error loading profile:', error)
+      // Fallback to localStorage
+      const stored = localStorage.getItem('userProfile')
+      if (stored) {
+        setProfile(JSON.parse(stored))
+      }
+    }
+  }
 
   const navigation = [
     { name: "Dashboard", href: "/dashboard", icon: Home },
     { name: "Food Log", href: "/food-log", icon: Apple },
     { name: "Steps", href: "/steps", icon: Activity },
     { name: "Analytics", href: "/analytics", icon: BarChart3 },
-    { name: "Settings", href: "/settings", icon: Settings },
+    { name: "Profile", href: "/profile", icon: Settings },
   ]
 
   return (
