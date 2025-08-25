@@ -18,19 +18,28 @@ export function BarcodeScanner({ isOpen, onClose, onBarcodeDetected }: BarcodeSc
   const [stream, setStream] = useState<MediaStream | null>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
+  
+  const isIOS = typeof navigator !== "undefined" && /iPad|iPhone|iPod/.test(navigator.userAgent)
 
-  // Initialize camera when dialog opens
+  // Initialize/cleanup when dialog opens/closes
   useEffect(() => {
-    if (isOpen) {
-      startCamera()
-    } else {
+    if (!isOpen) {
       stopCamera()
+      return
+    }
+
+    setError(null)
+
+    // iOS Safari requires a direct user gesture to call getUserMedia.
+    // So we only auto-start on non-iOS devices; iOS users will tap a button.
+    if (!isIOS) {
+      startCamera()
     }
 
     return () => {
       stopCamera()
     }
-  }, [isOpen])
+  }, [isOpen, isIOS])
 
   const startCamera = async () => {
     try {
@@ -40,6 +49,12 @@ export function BarcodeScanner({ isOpen, onClose, onBarcodeDetected }: BarcodeSc
       // Check if browser supports getUserMedia
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
         throw new Error("Camera access is not supported in this browser")
+      }
+
+      // Require secure context (HTTPS) on real devices. Allow localhost for development.
+      const isSecure = (typeof window !== "undefined" && (window.isSecureContext || location.protocol === "https:" || location.hostname === "localhost"))
+      if (!isSecure) {
+        throw new Error("Camera requires HTTPS. Open this site over https:// or use localhost during development.")
       }
 
       const mediaStream = await navigator.mediaDevices.getUserMedia({
@@ -116,6 +131,7 @@ export function BarcodeScanner({ isOpen, onClose, onBarcodeDetected }: BarcodeSc
                   ref={videoRef}
                   className="w-full h-full object-cover"
                   playsInline
+                  autoPlay
                   muted
                   style={{ transform: "scaleX(-1)" }} // Mirror the video for better UX
                 />
@@ -139,6 +155,15 @@ export function BarcodeScanner({ isOpen, onClose, onBarcodeDetected }: BarcodeSc
                   </div>
                 )}
               </div>
+
+              {/* For iOS: show an explicit button to start camera due to gesture requirement */}
+              {!error && isOpen && !isScanning && (
+                <div className="mt-3">
+                  <Button variant="outline" onClick={startCamera} className="w-full bg-transparent">
+                    Enable Camera
+                  </Button>
+                </div>
+              )}
 
               <canvas ref={canvasRef} className="hidden" />
             </div>
